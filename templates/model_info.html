@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Recommendation Model | Spotify</title>
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --spotify-green: #1DB954;
+            --spotify-black: #191414;
+            --spotify-dark-gray: #212121;
+            --spotify-light-gray: #535353;
+            --spotify-white: #FFFFFF;
+            --spotify-lightest-gray: #B3B3B3;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--spotify-black);
+            color: var(--spotify-white);
+            margin: 0;
+            padding: 0;
+        }
+        
+        .navbar {
+            background-color: var(--spotify-black);
+            padding: 16px 0;
+            border-bottom: 1px solid var(--spotify-dark-gray);
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--spotify-white);
+            font-weight: 700;
+            font-size: 24px;
+        }
+        
+        .navbar-brand svg {
+            margin-right: 10px;
+        }
+        
+        .card {
+            background-color: var(--spotify-dark-gray);
+            border-radius: 8px;
+            margin-bottom: 24px;
+            padding: 24px;
+        }
+        
+        h2 {
+            color: var(--spotify-white);
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        
+        h2.section-title {
+            font-size: 28px;
+            position: relative;
+            padding-left: 24px;
+        }
+        
+        h2.section-title::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background-color: var(--spotify-green);
+            border-radius: 50%;
+        }
+        
+        p, li {
+            color: var(--spotify-lightest-gray);
+            line-height: 1.5;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .chart-box {
+            background-color: var(--spotify-dark-gray);
+            border-radius: 8px;
+            overflow: hidden;
+            height: 350px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .heatmap-container {
+            background-color: var(--spotify-dark-gray);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th, .table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--spotify-light-gray);
+        }
+        
+        .table th {
+            background-color: var(--spotify-black);
+            color: var(--spotify-white);
+            font-weight: 600;
+        }
+        
+        .table td {
+            color: var(--spotify-lightest-gray);
+        }
+        
+        .btn {
+            background-color: var(--spotify-green);
+            color: var(--spotify-white);
+            border: none;
+            border-radius: 30px;
+            padding: 12px 32px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #1ed760;
+            transform: scale(1.05);
+        }
+        
+        ul {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        strong {
+            color: var(--spotify-white);
+        }
+        
+        .feature-tag {
+            display: inline-block;
+            background-color: rgba(29, 185, 84, 0.2);
+            color: var(--spotify-green);
+            border-radius: 16px;
+            padding: 4px 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .insights-box {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .insights-icon {
+            width: 48px;
+            height: 48px;
+            background-color: rgba(29, 185, 84, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        
+        .insights-content {
+            flex-grow: 1;
+        }
+        
+        .insights-title {
+            color: var(--spotify-white);
+            font-weight: 600;
+            margin: 0 0 4px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                Song Recommendation Model
+            </a>
+        </div>
+    </nav>
+
+    <div class="container" style="padding-top: 24px; padding-bottom: 48px;">
+
+        <div class="card">
+            <h2 class="section-title">Model Overview</h2>
+            <p>Our recommendation system analyzes Spotify track features to find songs with similar sonic characteristics. It combines PCA, K-Means clustering, and K-Nearest Neighbors (KNN) to create personalized recommendations based on your music preferences.</p>
+            
+            <div style="display: flex; margin-top: 24px; flex-wrap: wrap;">
+                <div class="feature-tag">PCA Dimensionality Reduction</div>
+                <div class="feature-tag">K-Means Clustering</div>
+                <div class="feature-tag">KNN Recommendations</div>
+                <div class="feature-tag">Audio Feature Analysis</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">Audio Features Analysis</h2>
+            
+            <div class="insights-box">
+                <div class="insights-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#1DB954" stroke-width="2"/>
+                        <path d="M12 6V12L16 14" stroke="#1DB954" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="insights-content">
+                    <h3 class="insights-title">Features Extraction</h3>
+                    <p>We analyze key audio features including danceability, energy, tempo, and loudness to create a comprehensive profile of each track.</p>
+                </div>
+            </div>
+            
+            <div class="insights-box">
+                <div class="insights-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 6H21M3 12H21M3 18H21" stroke="#1DB954" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="insights-content">
+                    <h3 class="insights-title">Feature Normalization</h3>
+                    <p>All features are normalized using StandardScaler to ensure balanced influence across different dimensions.</p>
+                </div>
+            </div>
+            
+            <div class="insights-box">
+                <div class="insights-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#1DB954" stroke-width="2"/>
+                        <path d="M16 8L8 16M8 8L16 16" stroke="#1DB954" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="insights-content">
+                    <h3 class="insights-title">Dimensionality Reduction</h3>
+                    <p>PCA transforms 9 original features into a 3D space, preserving essential patterns while reducing complexity.</p>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title" style="margin-top: 32px; margin-bottom: 24px;">Feature Distributions</h2>
+        <div class="grid-container" id="charts-container"></div>
+
+        <div class="heatmap-container">
+            <h2 style="margin-top: 0; margin-bottom: 16px;">Feature Correlations</h2>
+            <div id="heatmap"></div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">Music Space Visualization</h2>
+            <p>t-SNE visualization reveals how songs with similar characteristics cluster together in the feature space.</p>
+            <div id="tsne_plot" style="width: 100%; height: 500px; margin-top: 24px;"></div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">Song Clustering</h2>
+            <p>We use K-Means to identify natural groupings in the Spotify catalog, allowing more targeted recommendations.</p>
+            
+            <div style="margin: 24px 0;">
+                <h3 style="color: var(--spotify-white); font-weight: 600; margin-bottom: 16px;">Cluster Optimization</h3>
+                <div id="elbow_plot" style="width: 100%; height: 400px;"></div>
+            </div>
+            
+            <h3 style="color: var(--spotify-white); font-weight: 600; margin-bottom: 16px;">Cluster Visualization</h3>
+            <div id="pca_plot_3d" style="width: 100%; height: 600px;"></div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">Personalized Recommendations</h2>
+            <p>Nearest Neighbor algorithm finds the 10 closest songs to your selected track using the Euclidean distance between audio features.</p>
+            
+            <div id="nearest_songs_chart" style="width: 100%; height: 600px;"></div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">Model Performance</h2>
+            <p>These metrics help evaluate how well our model identifies natural clusters and makes relevant recommendations.</p>
+            
+            <table class="table" style="margin-top: 24px;">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Interpretation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Silhouette Score</td>
+                        <td>{{ silhouette_score }}</td>
+                        <td>Measures how similar songs are within clusters compared to other clusters</td>
+                    </tr>
+                    <tr>
+                        <td>Calinski-Harabasz Index</td>
+                        <td>{{ ch_score }}</td>
+                        <td>Higher values indicate better-defined clusters</td>
+                    </tr>
+                    <tr>
+                        <td>Davies-Bouldin Index</td>
+                        <td>{{ db_score }}</td>
+                        <td>Lower values indicate better separation between clusters</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="text-align: center; margin-top: 48px;">
+            <a href="{{url_for('index')}}"><button class="btn">Discover New Music</button></a>
+        </div>
+    </div>
+    <div>{{nearest_songs_chart}}</div>
+
+    <script>
+        const spotifyPlotlyTheme = {
+            paper_bgcolor: '#212121',
+            plot_bgcolor: '#212121',
+            font: {
+                family: 'Montserrat, sans-serif',
+                color: '#FFFFFF'
+            },
+            title: {
+                font: {
+                    color: '#FFFFFF',
+                    weight: 600
+                }
+            },
+            legend: {
+                font: {
+                    color: '#B3B3B3'
+                }
+            },
+            colorway: ['#1DB954', '#1ED760', '#2DE26D', '#4AEEA0', '#B3B3B3', '#FFFFFF'],
+            xaxis: {
+                gridcolor: '#535353',
+                zerolinecolor: '#535353',
+                tickfont: {
+                    color: '#B3B3B3'
+                }
+            },
+            yaxis: {
+                gridcolor: '#535353',
+                zerolinecolor: '#535353',
+                tickfont: {
+                    color: '#B3B3B3'
+                }
+            },
+            margin: {
+                t: 40,
+                r: 40,
+                b: 80,
+                l: 80
+            }
+        };
+        
+        function applySpotifyTheme(graphData) {
+            if (!graphData.layout) {
+                graphData.layout = {};
+            }
+            
+            for (const [key, value] of Object.entries(spotifyPlotlyTheme)) {
+                if (typeof value === 'object' && value !== null) {
+                    graphData.layout[key] = { ...graphData.layout[key], ...value };
+                } else {
+                    graphData.layout[key] = value;
+                }
+            }
+            
+            return graphData;
+        }
+
+        fetch("/histograms")
+        .then(response => response.json())
+        .then(data => {
+            let container = document.getElementById("charts-container");
+            
+            for (const [feature, jsonGraph] of Object.entries(data)) {
+                let div = document.createElement("div");
+                div.className = "chart-box";
+                div.id = feature;
+                container.appendChild(div);
+                
+                let graph = JSON.parse(jsonGraph);
+                
+                graph = applySpotifyTheme(graph);
+                
+                if (graph.data && graph.data.length > 0) {
+                    graph.data[0].marker = { color: '#1DB954' };
+                }
+                
+                Plotly.newPlot(feature, graph.data, graph.layout);
+            }
+        });
+
+        fetch("/heatmap")
+        .then(response => response.json())
+        .then(data => {
+            let graph = JSON.parse(data);
+            
+            graph = applySpotifyTheme(graph);
+            
+            if (graph.data && graph.data.length > 0) {
+                graph.data[0].colorscale = [
+                    [0, '#191414'],
+                    [0.5, '#535353'],
+                    [1, '#1DB954']
+                ];
+            }
+            
+            Plotly.newPlot("heatmap", graph.data, graph.layout);
+        });
+
+        function fetchPlot(endpoint, divID) {
+            fetch(endpoint)
+                .then(response => response.json())
+                .then(data => {
+                    let graph = JSON.parse(data);
+                    
+                    // Apply Spotify theme
+                    graph = applySpotifyTheme(graph);
+                    
+                    // Customize colors based on plot type
+                    if (divID === "elbow_plot" && graph.data && graph.data.length > 0) {
+                        graph.data[0].line = { color: '#1DB954', width: 3 };
+                        graph.data[0].marker = { color: '#1DB954', size: 8 };
+                    }
+                    
+                    Plotly.newPlot(divID, graph.data, graph.layout);
+                });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchPlot("/pca_kmeans", "pca_plot_3d");
+            fetchPlot("/tsne_plot", "tsne_plot");
+            fetchPlot("/elbow_plot", "elbow_plot");
+            fetchPlot(`/nearest_songs_plot`,"nearest_songs_chart");
+        });
+    </script>
+</body>
+</html>

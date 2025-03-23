@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Recommendation System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .section {
+            padding: 20px;
+            margin-bottom: 30px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .section-title {
+            color: #343a40;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+        }
+        .viz-container {
+            height: 400px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #navTabs {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: #fff;
+            padding: 10px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">Interactive Song Recommendation System</span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <ul class="nav nav-tabs" id="navTabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#eda">Exploratory Data Analysis</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#clustering">Clustering Analysis</a>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-3">
+            <!-- EDA Section -->
+            <div class="tab-pane fade show active" id="eda">
+                <div class="section">
+                    <h2 class="section-title">Exploratory Data Analysis</h2>
+                    <p class="lead">Explore the distribution and relationships between different audio features.</p>
+                    
+                    <h4>Feature Distributions</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="danceability-hist" class="viz-container"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="energy-hist" class="viz-container"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="valence-hist" class="viz-container"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="tempo-hist" class="viz-container"></div>
+                        </div>
+                    </div>
+                    
+                    <h4>Feature Relationships</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="danceability-energy-scatter" class="viz-container"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="valence-danceability-scatter" class="viz-container"></div>
+                        </div>
+                    </div>
+                    
+                    <h4>Feature Correlation</h4>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div id="correlation-heatmap" class="viz-container"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="eda-loader" class="loader"></div>
+                </div>
+            </div>
+            
+            <!-- Clustering Section -->
+            <div class="tab-pane fade" id="clustering">
+                <div class="section">
+                    <h2 class="section-title">K-Means Clustering Analysis</h2>
+                    <p class="lead">Analyzing the optimal number of clusters and visualizing song clusters.</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Elbow Method for Optimal K</h4>
+                            <div id="inertia-plot" class="viz-container"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Clustering Metrics</h4>
+                            <div class="row" id="metrics-container">
+                                <div class="col-md-12">
+                                    <div class="metric-card">
+                                        <h5>Optimal Number of Clusters (k)</h5>
+                                        <h3 id="optimal-k" class="text-primary">Loading...</h3>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="metric-card">
+                                        <h5>Silhouette Score</h5>
+                                        <p>Measures how similar an object is to its own cluster compared to other clusters. Range: [-1, 1]</p>
+                                        <h3 id="silhouette-score" class="text-primary">Loading...</h3>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="metric-card">
+                                        <h5>Calinski-Harabasz Score</h5>
+                                        <p>Ratio of between-cluster dispersion to within-cluster dispersion. Higher is better.</p>
+                                        <h3 id="calinski-score" class="text-primary">Loading...</h3>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="metric-card">
+                                        <h5>Davies-Bouldin Score</h5>
+                                        <p>Average similarity between clusters. Lower is better.</p>
+                                        <h3 id="davies-score" class="text-primary">Loading...</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4>3D Cluster Visualization (PCA)</h4>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div id="clusters-3d-plot" class="viz-container" style="height: 600px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="clustering-loader" class="loader"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load EDA visualizations when the page loads
+            loadEDA();
+            
+            // Load clustering visualizations when the tab is clicked
+            document.querySelector('a[href="#clustering"]').addEventListener('click', function() {
+                loadClustering();
+            });
+            
+            // Handle recommendation button click
+            document.getElementById('recommendBtn').addEventListener('click', function() {
+                const songId = document.getElementById('songSelect').value;
+                if (songId) {
+                    getRecommendations(songId);
+                } else {
+                    alert('Please select a song first.');
+                }
+            });
+        });
+        
+        function loadEDA() {
+            document.getElementById('eda-loader').style.display = 'block';
+            
+            fetch('/eda')
+                .then(response => response.json())
+                .then(data => {
+                    // Hide the loader
+                    document.getElementById('eda-loader').style.display = 'none';
+                    
+                    // Plot histograms
+                    Plotly.newPlot('danceability-hist', data.histograms.Danceability.data, data.histograms.Danceability.layout);
+                    Plotly.newPlot('energy-hist', data.histograms.Energy.data, data.histograms.Energy.layout);
+                    Plotly.newPlot('valence-hist', data.histograms.Valence.data, data.histograms.Valence.layout);
+                    Plotly.newPlot('tempo-hist', data.histograms.Tempo.data, data.histograms.Tempo.layout);
+                    
+                    // Plot scatter plots
+                    Plotly.newPlot('danceability-energy-scatter', data.scatter_plots.Danceability_vs_Energy.data, data.scatter_plots.Danceability_vs_Energy.layout);
+                    Plotly.newPlot('valence-danceability-scatter', data.scatter_plots.Valence_vs_Danceability.data, data.scatter_plots.Valence_vs_Danceability.layout);
+                    
+                    // Plot correlation heatmap
+                    Plotly.newPlot('correlation-heatmap', data.correlation_heatmap.data, data.correlation_heatmap.layout);
+                })
+                .catch(error => {
+                    console.error('Error loading EDA data:', error);
+                    document.getElementById('eda-loader').style.display = 'none';
+                    alert('Error loading EDA data. Please check the console for details.');
+                });
+        }
+        
+        function loadClustering() {
+            document.getElementById('clustering-loader').style.display = 'block';
+            
+            fetch('/clustering')
+                .then(response => response.json())
+                .then(data => {
+                    // Hide the loader
+                    document.getElementById('clustering-loader').style.display = 'none';
+                    
+                    // Plot inertia chart
+                    Plotly.newPlot('inertia-plot', data.inertia_plot.data, data.inertia_plot.layout);
+                    
+                    // Plot 3D clusters visualization
+                    Plotly.newPlot('clusters-3d-plot', data.clusters_3d_plot.data, data.clusters_3d_plot.layout);
+                    
+                    // Display clustering metrics
+                    document.getElementById('optimal-k').textContent = data.optimal_k;
+                    document.getElementById('silhouette-score').textContent = data.silhouette_score.toFixed(4);
+                    document.getElementById('calinski-score').textContent = data.calinski_harabasz_score.toFixed(2);
+                    document.getElementById('davies-score').textContent = data.davies_bouldin_score.toFixed(4);
+                })
+                .catch(error => {
+                    console.error('Error loading clustering data:', error);
+                    document.getElementById('clustering-loader').style.display = 'none';
+                    alert('Error loading clustering data. Please check the console for details.');
+                });
+        }
+        
+        function getRecommendations(songId) {
+            // Show loader and hide existing results
+            document.getElementById('recommendation-loader').style.display = 'block';
+            document.getElementById('recommendationResults').style.display = 'none';
+            
+            fetch('/recommend', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ song_id: songId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loader
+                document.getElementById('recommendation-loader').style.display = 'none';
+                
+                // Display selected song info
+                document.getElementById('selectedSongTitle').textContent = `${data.selected_song.Artist} - ${data.selected_song.Track}`;
+                document.getElementById('selectedSongAlbum').textContent = `Album: ${data.selected_song.Album}`;
+                
+                // Populate recommendations table
+                const tableBody = document.getElementById('recommendationsTable');
+                tableBody.innerHTML = '';
+                
+                data.recommendations.forEach(song => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${song.Artist}</td>
+                        <td>${song.Track}</td>
+                        <td>${song.Album}</td>
+                        <td>${(song.Similarity * 100).toFixed(2)}%</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                // Plot similarity chart
+                Plotly.newPlot('similarity-chart', data.similarity_chart.data, data.similarity_chart.layout);
+                
+                // Plot feature comparison radar chart
+                Plotly.newPlot('feature-comparison', data.feature_comparison.data, data.feature_comparison.layout);
+                
+                // Show results
+                document.getElementById('recommendationResults').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error getting recommendations:', error);
+                document.getElementById('recommendation-loader').style.display = 'none';
+                alert('Error getting recommendations. Please check the console for details.');
+            });
+        }
+    </script>
+</body>
+</html>
