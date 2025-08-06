@@ -1,21 +1,21 @@
-# 🎵 Music Recommendation System
+# Music Recommendation System
 
 A machine learning-based recommendation engine that suggests similar songs based on audio features and popularity metrics. It uses **K-Means Clustering** to group similar tracks and **K-Nearest Neighbors (KNN)** to recommend songs that closely resemble a selected input.
 
 ---
 
-## 📌 Features
+## Features
 
-- 🔍 **Content-Based Filtering** using audio and metadata attributes  
-- 🎯 **K-Means Clustering** for grouping similar songs  
-- 🤖 **K-Nearest Neighbors (KNN)** for finding song similarities  
-- 📊 **Clustering Evaluation** with Silhouette Score, Davies-Bouldin Index, and Calinski-Harabasz Score  
-- 📁 Handles large datasets efficiently  
-- ✅ No need for user history or explicit feedback  
+-  **Content-Based Filtering** using audio and metadata attributes  
+-  **K-Means Clustering** for grouping similar songs  
+-  **K-Nearest Neighbors (KNN)** for finding song similarities  
+-  **Clustering Evaluation** with Silhouette Score, Davies-Bouldin Index, and Calinski-Harabasz Score  
+-  Handles large datasets efficiently  
+-  No need for user history or explicit feedback  
 
 ---
 
-## 🧠 Algorithms Used
+## Algorithms Used
 
 - **K-Means Clustering** – Unsupervised algorithm to group songs with similar characteristics.  
 - **K-Nearest Neighbors (KNN)** – Supervised similarity-based algorithm to recommend songs.  
@@ -23,7 +23,7 @@ A machine learning-based recommendation engine that suggests similar songs based
 
 ---
 
-## 📑 Dataset
+## Dataset
 
 - Total records: **20,594 songs**
 - Key features used:
@@ -33,7 +33,7 @@ A machine learning-based recommendation engine that suggests similar songs based
 
 ---
 
-## 🚀 How to Run
+## How to Run
 
 ### 1. Clone the Repository
 ```bash
@@ -56,7 +56,7 @@ python main.py
 
 ---
 
-## 📈 Evaluation Metrics
+## Evaluation Metrics
 
 - **Silhouette Score** – Measures how well samples are clustered.
 - **Davies-Bouldin Index** – Lower values indicate better clustering.
@@ -64,7 +64,7 @@ python main.py
 
 ---
 
-## 📬 Example Usage
+## Example Usage
 
 ```python
 recommend_songs(song_index=100, n_recommendations=5)
@@ -74,7 +74,7 @@ Outputs the top 10 most similar songs based on audio features along with helpful
 
 ---
 
-## 🛠 Built With
+## Built With
 
 - Python 3  
 - scikit-learn  
@@ -84,7 +84,7 @@ Outputs the top 10 most similar songs based on audio features along with helpful
 
 ---
 
-## 📌 Future Improvements
+## Future Improvements
 
 - 🎧 Add genre or mood filtering  
 - 🌐 Build a web interface using Flask or Streamlit  
